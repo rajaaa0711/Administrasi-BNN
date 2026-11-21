@@ -1,0 +1,341 @@
+/* ==============================================================================
+ * SIM-REHAB BNNK BULELENG - Input Pasien Form Styles
+ * ============================================================================== */
+
+.form-page-content {
+  padding: 24px 24px 260px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.alert-relapse-box {
+  background-color: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-left: 4px solid #b91c1c;
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.alert-relapse-text {
+  font-size: 0.82rem;
+  color: #7f1d1d;
+  line-height: 1.45;
+}
+
+.alert-relapse-text strong {
+  display: block;
+  font-size: 0.88rem;
+  margin-bottom: 2px;
+  color: #991b1b;
+}
+
+.intake-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.form-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: visible !important;
+}
+
+.form-panel .panel-card-body {
+  overflow: visible !important;
+}
+
+.form-body-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  margin-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+  gap: 12px;
+}
+
+.patient-photo-field {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px;
+  background-color: var(--bg-canvas);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.photo-preview-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-subtle);
+  overflow: hidden;
+  background-color: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-xs);
+}
+
+.photo-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-preview-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--text-muted);
+}
+
+.photo-preview-placeholder span {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.photo-action-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.photo-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.photo-upload-btn {
+  cursor: pointer;
+}
+
+.btn-remove-photo {
+  color: #dc2626;
+  border-color: #fca5a5;
+  background-color: #fef2f2;
+}
+
+.btn-remove-photo:hover {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.photo-upload-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 960px) {
+  .intake-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Desa / Kelurahan Autocomplete Combobox Styles */
+.desa-combobox-group {
+  position: relative;
+}
+
+.desa-combobox-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.desa-combobox-input {
+  width: 100%;
+  padding-right: 36px;
+}
+
+.desa-combobox-toggle-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.desa-combobox-toggle-btn:hover {
+  color: var(--brand-blue);
+  background-color: var(--bg-canvas);
+}
+
+.desa-combobox-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25), 0 8px 10px -6px rgba(15, 23, 42, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDownFade 0.15s ease-out;
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.desa-combobox-header {
+  padding: 8px 12px;
+  background-color: var(--bg-canvas);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.desa-combobox-list {
+  max-height: 220px;
+  overflow-y: scroll !important;
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+.desa-combobox-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.desa-combobox-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.desa-combobox-list::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 4px;
+}
+
+.desa-combobox-list::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+.desa-combobox-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.desa-combobox-item:last-child {
+  border-bottom: none;
+}
+
+.desa-combobox-item:hover,
+.desa-combobox-item.highlighted {
+  background-color: #eff6ff;
+}
+
+.desa-combobox-item.selected {
+  background-color: #dbeafe;
+  font-weight: 700;
+}
+
+.desa-item-name-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.desa-item-pin {
+  color: var(--brand-blue);
+  flex-shrink: 0;
+}
+
+.desa-item-text {
+  font-size: 0.84rem;
+  color: var(--text-main);
+}
+
+.desa-item-kec-badge {
+  font-size: 0.7rem;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+}
+
+.desa-item-kec-badge.current-kec {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.desa-item-kec-badge.other-kec {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.desa-combobox-empty {
+  padding: 16px 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.desa-combobox-empty p {
+  margin: 0 0 4px 0;
+  color: var(--text-main);
+}
+
+.desa-empty-tip {
+  font-size: 0.73rem;
+  color: #059669;
+}
+
+.desa-combobox-helper {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
