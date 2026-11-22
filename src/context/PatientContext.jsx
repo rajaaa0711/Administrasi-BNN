@@ -1,60 +1,152 @@
-/**
- * ==============================================================================
- * File: src/context/PatientContext.jsx
- * Fungsi: Manajemen Data Pasien Terpusat (Global State & CRUD Operations)
- * ==============================================================================
- * 
- * DESKRIPSI & ALUR KERJA:
- * Context ini mengelola data pasien secara sementara berbasis sesi (Session-Based):
- * 
- * 1. Penyimpanan Data Sementara (Session Storage):
- *    - Seluruh data klien rehabilitasi disimpan di `sessionStorage`
- *      dengan kunci `'simRehabPatients'`.
- *    - Data hanya tersimpan selama browser/tab aktif dalam sesi tersebut.
- *    - Ketika server dimatikan, browser ditutup, atau proyek selesai,
- *      seluruh data otomatis terhapus bersih (kembali ke 0 data).
- * 
- * 2. Normalisasi & Validasi Data (Fungsi `normalizePatientList`):
- *    - Menjamin bahwa setiap data pasien memiliki 17 kolom standar resmi BNN.
- *    - Mengisi nilai default jika ada kolom yang kosong (contoh: nomor surat '-',
- *      kabupaten asal 'Buleleng', status progres 'ON GOING').
- *    - Membersihkan data nomor HP jika tidak sengaja terisi teks nama rumah sakit/instansi.
- * 
- * 3. Operasi CRUD yang Disediakan:
- *    - `patients`           : Daftar seluruh pasien yang ada di sesi saat ini.
- *    - `addPatient`         : Menambah data klien baru (Create).
- *    - `updatePatientStatus`: Memperbarui status perkembangan/rujukan klien (Update).
- *    - `deletePatient`      : Menghapus data rekam medis berdasarkan NIK (Delete).
- *    - `importPatients`     : Menggabungkan data hasil impor dari file Excel/CSV.
- *    - `clearAllPatients`   : Mengosongkan seluruh data pasien.
- */
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { defaultSeedPatients } from '../data/seedPatients';
 
-// Membuat objek Context khusus data pasien
 const PatientContext = createContext(null);
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-/**
- * Fungsi Normalisasi Data Pasien
- * Menyeragamkan format data dari berbagai sumber (input form maupun impor Excel)
- * agar sesuai dengan struktur resmi 17 kolom BNN.
- * @param {Array} list - Daftar data mentah pasien
- * @returns {Array} Daftar data pasien yang sudah dibersihkan dan diseragamkan
- */
-function normalizePatientList(list) {
-  if (!Array.isArray(list) || list.length === 0) {
-    return [];
+// Helper ubah format tanggal ke YYYY-MM-DD agar diterima MySQL DATE
+function toMySQLDate(val) {
+  if (!val || val === '-') return null;
+  let str = String(val).replace(/^'+/, '').trim();
+
+  // 1. Format standar YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
+
+  // 2. Format DD/MM/YYYY atau DD-MM-YYYY
+  const dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (dmy) return `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`;
+
+  // 3. Format angka serial tanggal Excel (contoh: 28217)
+  if (/^\d{5}$/.test(str)) {
+    const excelDate = new Date(Date.UTC(1899, 11, 30) + Number(str) * 86400000);
+    return excelDate.toISOString().slice(0, 10);
   }
 
-  const normalized = list.map((p) => {
+  // 4. Format teks Indonesia (dengan/tanpa kota, typo 0ktober/pebruari/Nopember, atau tanpa spasi)
+  if (str.includes(',')) {
+    str = str.split(',').pop().trim();
+  }
+  const bulanMap = {
+    januari: '01', jan: '01',
+    februari: '02', pebruari: '02', feb: '02',
+    maret: '03', mar: '03',
+    april: '04', apr: '04',
+    mei: '05',
+    juni: '06', jun: '06',
+    juli: '07', jul: '07',
+    agustus: '08', agu: '08', ags: '08',
+    september: '09', sep: '09',
+    oktober: '10', '0ktober': '10', okt: '10',
+    november: '11', nopember: '11', nov: '11',
+    desember: '12', des: '12'
+  };
+  const teksMatch = str.match(/^(\d{1,2})\s*([a-zA-Z0]+)\s*(\d{4})$/);
+  if (teksMatch) {
+    const day = teksMatch[1].padStart(2, '0');
+    const mon = bulanMap[teksMatch[2].toLowerCase()];
+    const year = teksMatch[3];
+    if (mon) return `${year}-${mon}-${day}`;
+  }
+
+  return null;
+}
+
+// Terjemahkan data dari MySQL (snake_case) -> Frontend React (camelCase)
+function mapFromApi(row) {
+  const isFemale = String(row.gender || '').toUpperCase() === 'P';
+  return {
+    id: row.id,
+    nik: row.nik || '',
+    nama: row.nama || '',
+    tglLahir: row.tgl_lahir ? String(row.tgl_lahir).slice(0, 10) : '',
+    gender: isFemale ? 'perempuan' : 'laki',
+    jenisKelamin: isFemale ? 'Perempuan' : 'Laki-Laki',
+    telepon: row.telepon || '-',
+    noHp: row.telepon || '-',
+    pekerjaan: row.pekerjaan || 'Tidak Bekerja',
+    kecamatan: row.kecamatan || '',
+    desa: row.desa || '',
+    kabupatenAsal: row.kabupaten_asal || 'Buleleng',
+    alamat: row.alamat || '',
+    nomorSurat: row.nomor_surat || '-',
+    tglKedatangan: row.tgl_kedatangan ? String(row.tgl_kedatangan).slice(0, 10) : '',
+    tahunRehab: row.tahun ? String(row.tahun) : new Date().getFullYear().toString(),
+    kepada: row.kepada || '',
+    tujuanRujukan: row.kepada || '',
+    kabupaten: row.kabupaten_rujukan || 'Buleleng',
+    statusRawat: row.status_rawat || '',
+    statusProgres: row.status_progres || 'ON GOING',
+    rehabKe: row.rehab_ke || 'Ke-1',
+    keterangan: row.keterangan || '',
+  };
+}
+
+// Terjemahkan data dari Frontend React (camelCase) -> MySQL (snake_case) untuk POST
+function mapToApi(p) {
+  const genderStr = String(p.gender || p.jenisKelamin || '').toLowerCase();
+  const genderEnum = genderStr.includes('p') ? 'P' : 'L';
+  const tahunNum = parseInt(p.tahunRehab || p.tahun, 10);
+
+  return {
+    nik: String(p.nik || '').trim(),
+    nama: String(p.nama || '').trim(),
+    tgl_lahir: toMySQLDate(p.tglLahir || p.tgl_lahir),
+    gender: genderEnum,
+    telepon: p.telepon && p.telepon !== '-' ? p.telepon : (p.noHp && p.noHp !== '-' ? p.noHp : null),
+    pekerjaan: p.pekerjaan || null,
+    kecamatan: p.kecamatan || null,
+    desa: p.desa || null,
+    kabupaten_asal: p.kabupatenAsal || p.kabupaten_asal || 'Buleleng',
+    alamat: p.alamat || null,
+    nomor_surat: p.nomorSurat || p.nomor_surat || '-',
+    tgl_kedatangan: toMySQLDate(p.tglKedatangan || p.tgl_kedatangan),
+    tahun: Number.isNaN(tahunNum) ? new Date().getFullYear() : tahunNum,
+    kepada: p.kepada || p.tujuanRujukan || null,
+    kabupaten_rujukan: p.kabupaten || p.kabupaten_rujukan || 'Buleleng',
+    status_rawat: p.statusRawat || p.status_rawat || null,
+    status_progres: p.statusProgres || p.status_progres || 'ON GOING',
+    rehab_ke: p.rehabKe || p.rehab_ke || 'Ke-1',
+    keterangan: p.keterangan || null,
+  };
+}
+
+// Terjemahkan field parsial untuk PUT (Update) agar kolom lain tidak tertimpa null
+function mapPartialToApi(fields) {
+  const payload = {};
+  if (fields.nama !== undefined) payload.nama = fields.nama;
+  if (fields.tglLahir !== undefined) payload.tgl_lahir = toMySQLDate(fields.tglLahir);
+  if (fields.gender !== undefined || fields.jenisKelamin !== undefined) {
+    const g = String(fields.gender || fields.jenisKelamin || '').toLowerCase();
+    payload.gender = g.includes('p') ? 'P' : 'L';
+  }
+  if (fields.telepon !== undefined) payload.telepon = fields.telepon;
+  if (fields.noHp !== undefined && payload.telepon === undefined) payload.telepon = fields.noHp;
+  if (fields.pekerjaan !== undefined) payload.pekerjaan = fields.pekerjaan;
+  if (fields.kecamatan !== undefined) payload.kecamatan = fields.kecamatan;
+  if (fields.desa !== undefined) payload.desa = fields.desa;
+  if (fields.kabupatenAsal !== undefined) payload.kabupaten_asal = fields.kabupatenAsal;
+  if (fields.alamat !== undefined) payload.alamat = fields.alamat;
+  if (fields.nomorSurat !== undefined) payload.nomor_surat = fields.nomorSurat;
+  if (fields.tglKedatangan !== undefined) payload.tgl_kedatangan = toMySQLDate(fields.tglKedatangan);
+  if (fields.tahunRehab !== undefined) payload.tahun = parseInt(fields.tahunRehab, 10) || new Date().getFullYear();
+  if (fields.kepada !== undefined) payload.kepada = fields.kepada;
+  if (fields.tujuanRujukan !== undefined && payload.kepada === undefined) payload.kepada = fields.tujuanRujukan;
+  if (fields.kabupaten !== undefined) payload.kabupaten_rujukan = fields.kabupaten;
+  if (fields.statusRawat !== undefined) payload.status_rawat = fields.statusRawat;
+  if (fields.statusProgres !== undefined) payload.status_progres = fields.statusProgres;
+  if (fields.rehabKe !== undefined) payload.rehab_ke = fields.rehabKe;
+  if (fields.keterangan !== undefined) payload.keterangan = fields.keterangan;
+  return payload;
+}
+
+function normalizePatientList(list) {
+  if (!Array.isArray(list) || list.length === 0) return [];
+
+  return list.map((p) => {
     const item = { ...p };
 
-    // 1. Standarisasi Nomor Surat & Kabupaten Asal
     if (!item.nomorSurat) item.nomorSurat = '-';
     if (!item.kabupatenAsal) item.kabupatenAsal = 'Buleleng';
 
-    // 2. Penentuan Kabupaten Rujukan Berdasarkan Instansi Tujuan
     if (!item.kabupaten) {
       if ((item.statusRawat || '').includes('Bangli') || (item.tujuanRujukan || '').includes('Bangli')) {
         item.kabupaten = 'Bangli';
@@ -67,7 +159,6 @@ function normalizePatientList(list) {
       }
     }
 
-    // 3. Penentuan Nama Resmi Instansi Rujukan
     if (!item.kepada) {
       if (item.statusRawat === 'Rawat Inap RSJ Bangli' || (item.tujuanRujukan || '').includes('RSJ')) {
         item.kepada = 'UPTD. Rumah Sakit Jiwa Provinsi Bali Cq. Poli Psikiatri Rumah Sakit Jiwa Provinsi Bali';
@@ -80,37 +171,19 @@ function normalizePatientList(list) {
       }
     }
 
-    // 4. Filter Sanitasi Nomor Telepon / HP
     const isInvalidPhone = (val) => {
       if (!val) return true;
       const s = String(val).trim().toLowerCase();
       if (s === '-' || s === '' || s === 'null' || s === 'undefined') return true;
-      if (
-        s.includes('rawat') ||
-        s.includes('jalan') ||
-        s.includes('inap') ||
-        s.includes('bnn') ||
-        s.includes('rsj') ||
-        s.includes('lido') ||
-        s.includes('klinik') ||
-        s.includes('uptd') ||
-        s.includes('bali') ||
-        s.includes('surat') ||
-        s.includes('singaraja') ||
-        s.includes('buleleng') ||
-        s.includes('kab')
-      ) {
-        return true;
-      }
-      return false;
+      return ['rawat', 'jalan', 'inap', 'bnn', 'rsj', 'lido', 'klinik', 'uptd', 'bali', 'surat', 'singaraja', 'buleleng', 'kab']
+        .some((kw) => s.includes(kw));
     };
 
     if (isInvalidPhone(item.noHp)) item.noHp = '-';
     if (isInvalidPhone(item.telepon)) item.telepon = '-';
-    if ((!item.noHp || item.noHp === '-') && item.telepon && !isInvalidPhone(item.telepon)) item.noHp = item.telepon;
-    if ((!item.telepon || item.telepon === '-') && item.noHp && !isInvalidPhone(item.noHp)) item.telepon = item.noHp;
+    if (item.noHp === '-' && !isInvalidPhone(item.telepon)) item.noHp = item.telepon;
+    if (item.telepon === '-' && !isInvalidPhone(item.noHp)) item.telepon = item.noHp;
 
-    // 5. Standarisasi Jenis Kelamin (Gender)
     if (!item.jenisKelamin) {
       item.jenisKelamin = (item.gender || 'laki') === 'perempuan' ? 'Perempuan' : 'Laki-Laki';
     }
@@ -118,15 +191,13 @@ function normalizePatientList(list) {
       item.gender = (item.jenisKelamin || '').toLowerCase().includes('p') ? 'perempuan' : 'laki';
     }
 
-    // 6. Standarisasi Progres & Status
     if (!item.pekerjaan) item.pekerjaan = 'Tidak Bekerja';
     if (!item.statusProgres) item.statusProgres = 'ON GOING';
     if (!item.rehabKe) item.rehabKe = 'Ke-1';
     if (!item.tahunRehab) {
-      item.tahunRehab = item.tglKedatangan ? item.tglKedatangan.slice(-4) : new Date().getFullYear().toString();
+      item.tahunRehab = item.tglKedatangan ? String(item.tglKedatangan).slice(0, 4) : new Date().getFullYear().toString();
     }
 
-    // 7. Format Teks Layanan untuk Tampilan Tabel & Cetak
     if (!item.layananTeks) {
       if (String(item.statusRawat || '').toLowerCase().includes('inap')) {
         const rujukanSingkat = (item.kepada || item.tujuanRujukan || '').includes('Lido')
@@ -143,156 +214,153 @@ function normalizePatientList(list) {
     }
     return item;
   });
-
-  return normalized;
 }
 
-/**
- * Provider Data Pasien (PatientProvider)
- * Komponen yang membungkus aplikasi agar state pasien dan fungsi CRUD dapat diakses di mana saja.
- */
 export function PatientProvider({ children }) {
-  // Membersihkan sisa data localStorage lama jika ada
-  useEffect(() => {
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 1. Ambil semua data pasien dari Backend MySQL saat web dibuka
+  const fetchPatients = useCallback(async () => {
     try {
-      localStorage.removeItem('simRehabPatients');
-    } catch (e) {}
-  }, []);
-
-  // Inisialisasi state patients dari sessionStorage (sementara per sesi)
-  const [patients, setPatients] = useState(() => {
-    try {
-      const data = sessionStorage.getItem('simRehabPatients');
-      if (!data) {
-        sessionStorage.setItem('simRehabPatients', JSON.stringify([]));
-        return [];
-      }
-      const parsed = JSON.parse(data);
-      const normalized = normalizePatientList(parsed);
-      sessionStorage.setItem('simRehabPatients', JSON.stringify(normalized));
-      return normalized;
-    } catch (e) {
-      return [];
-    }
-  });
-
-  /**
-   * Event Listener Storage:
-   * Menyelaraskan data secara otomatis jika user membuka sistem SIM-REHAB di lebih dari satu tab browser.
-   */
-  useEffect(() => {
-    const handleStorage = (e) => {
-      if (e.key === 'simRehabPatients' && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          setPatients(normalizePatientList(parsed));
-        } catch (err) {}
-      }
-    };
-
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
-
-  /**
-   * Fungsi untuk menyimpan dan memperbarui data pasien ke state dan sessionStorage
-   */
-  const saveAndSetPatients = useCallback((newPatients) => {
-    setPatients(newPatients);
-    sessionStorage.setItem('simRehabPatients', JSON.stringify(newPatients));
-  }, []);
-
-  /**
-   * Fungsi Tambah Pasien Baru (Create)
-   * Menyisipkan pasien baru di urutan paling atas daftar.
-   */
-  const addPatient = useCallback((newPatient) => {
-    setPatients((prev) => {
-      const updated = [newPatient, ...prev];
-      sessionStorage.setItem('simRehabPatients', JSON.stringify(updated));
-      return updated;
-    });
-    return newPatient;
-  }, []);
-
-  /**
-   * Fungsi Hapus Pasien (Delete)
-   * Menghapus rekam medis pasien berdasarkan NIK (Nomor Induk Kependudukan).
-   */
-  const deletePatient = useCallback((nik) => {
-    setPatients((prev) => {
-      const updated = prev.filter(
-        (p) => String(p.nik).trim() !== String(nik).trim()
-      );
-      sessionStorage.setItem('simRehabPatients', JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
-
-  /**
-   * Fungsi Perbarui Status & Data Pasien (Update)
-   * Memperbarui informasi perkembangan rekam medis klien berdasarkan NIK.
-   */
-  const updatePatientStatus = useCallback(
-    (nik, updatedFields) => {
-      setPatients((prev) => {
-        const updated = prev.map((p) => {
-          if (String(p.nik).trim() === String(nik).trim()) {
-            if (typeof updatedFields === 'string') {
-              return { ...p, statusProgres: updatedFields };
-            }
-            return { ...p, ...updatedFields };
-          }
-          return p;
-        });
-        sessionStorage.setItem('simRehabPatients', JSON.stringify(updated));
-        return updated;
-      });
-    },
-    []
-  );
-
-  /**
-   * Fungsi Impor Pasien dari File Excel / CSV
-   * Mendukung mode 'append' (menambah/memperbarui data) dan 'overwrite' (menimpa seluruh database).
-   */
-  const importPatients = useCallback((incomingList, mode = 'append') => {
-    setPatients((prev) => {
-      let merged = [];
-      if (mode === 'overwrite') {
-        merged = [...incomingList];
+      setLoading(true);
+      const res = await fetch(`${API_URL}/patients?per_page=10000`);
+      const json = await res.json();
+      if (res.ok && json.success && Array.isArray(json.data)) {
+        const mapped = json.data.map(mapFromApi);
+        setPatients(normalizePatientList(mapped));
       } else {
-        merged = [...prev];
-        incomingList.forEach((newItem) => {
-          const idx = merged.findIndex(
-            (p) => String(p.nik).trim() === String(newItem.nik).trim()
-          );
-          if (idx !== -1) {
-            // Jika NIK sudah ada, perbarui data yang lama
-            merged[idx] = { ...merged[idx], ...newItem };
-          } else {
-            // Jika NIK baru, tambahkan ke list
-            merged.push(newItem);
-          }
-        });
+        console.error('Gagal mengambil data pasien:', json.message);
       }
-      sessionStorage.setItem('simRehabPatients', JSON.stringify(merged));
-      return merged;
-    });
+    } catch (err) {
+      console.error('Error koneksi ke backend:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  /**
-   * Fungsi Mengosongkan Seluruh Data (Clear All)
-   */
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
+
+  // 2. Tambah Pasien Baru (POST /api/patients)
+  const addPatient = useCallback(async (newPatient) => {
+    const normalizedItem = normalizePatientList([newPatient])[0];
+    const payload = mapToApi(normalizedItem);
+
+    try {
+      const res = await fetch(`${API_URL}/patients`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        alert(`Gagal menyimpan ke database: ${json.message || 'Terjadi kesalahan'}`);
+        return null;
+      }
+
+      setPatients((prev) => [normalizedItem, ...prev]);
+      return normalizedItem;
+    } catch (err) {
+      console.error('Error POST patient:', err);
+      alert('Gagal terhubung ke server backend (pastikan localhost:5000 aktif).');
+      return null;
+    }
+  }, []);
+
+  // 3. Hapus Pasien (DELETE /api/patients/:nik)
+  const deletePatient = useCallback(async (nik) => {
+    const cleanNik = String(nik).trim();
+    try {
+      const res = await fetch(`${API_URL}/patients/${encodeURIComponent(cleanNik)}`, {
+        method: 'DELETE',
+      });
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        alert(`Gagal menghapus data: ${json.message || 'Terjadi kesalahan'}`);
+        return;
+      }
+
+      setPatients((prev) => prev.filter((p) => String(p.nik).trim() !== cleanNik));
+    } catch (err) {
+      console.error('Error DELETE patient:', err);
+      alert('Gagal terhubung ke server backend.');
+    }
+  }, []);
+
+  // 4. Perbarui Status & Data Pasien (PUT /api/patients/:nik)
+  const updatePatientStatus = useCallback(async (nik, updatedFields) => {
+    const cleanNik = String(nik).trim();
+    const fieldsObj = typeof updatedFields === 'string'
+      ? { statusProgres: updatedFields }
+      : updatedFields;
+    const payload = mapPartialToApi(fieldsObj);
+
+    try {
+      const res = await fetch(`${API_URL}/patients/${encodeURIComponent(cleanNik)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        alert(`Gagal memperbarui data: ${json.message || 'Terjadi kesalahan'}`);
+        return;
+      }
+
+      setPatients((prev) =>
+        normalizePatientList(
+          prev.map((p) =>
+            String(p.nik).trim() === cleanNik ? { ...p, ...fieldsObj } : p
+          )
+        )
+      );
+    } catch (err) {
+      console.error('Error PUT patient:', err);
+      alert('Gagal terhubung ke server backend.');
+    }
+  }, []);
+
+  // 5. Impor Pasien Massal dari Excel/CSV (POST /api/patients/bulk-import)
+const importPatients = useCallback(async (incomingList, mode = 'append') => {
+  const normalizedIncoming = normalizePatientList(incomingList);
+  const payloadList = normalizedIncoming.map(mapToApi);
+
+  try {
+    const res = await fetch(`${API_URL}/patients/bulk-import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ patients: payloadList, mode }),
+    });
+    const json = await res.json();
+
+    if (!res.ok || !json.success) {
+      alert(`Gagal impor massal: ${json.message || 'Terjadi kesalahan'}`);
+      return;
+    }
+
+    await fetchPatients();
+  } catch (err) {
+    console.error('Error bulk-import:', err);
+    alert('Gagal terhubung ke server backend saat impor data.');
+  }
+}, [fetchPatients]);
+
+  // 6. Kosongkan daftar tampilan (tidak langsung hapus DB demi keamanan)
   const clearAllPatients = useCallback(() => {
     setPatients([]);
-    sessionStorage.setItem('simRehabPatients', JSON.stringify([]));
   }, []);
 
   return (
     <PatientContext.Provider
       value={{
         patients,
+        loading,
+        fetchPatients,
         addPatient,
         deletePatient,
         updatePatientStatus,
@@ -305,10 +373,6 @@ export function PatientProvider({ children }) {
   );
 }
 
-/**
- * Custom Hook usePatients
- * Mempermudah komponen lain dalam mengakses data dan fungsi CRUD pasien.
- */
 export function usePatients() {
   const context = useContext(PatientContext);
   if (!context) {
