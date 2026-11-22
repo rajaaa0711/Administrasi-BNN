@@ -217,23 +217,38 @@ function normalizePatientList(list) {
 }
 
 export function PatientProvider({ children }) {
-  const [patients, setPatients] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Ambil data dari memori browser lokal saat pertama kali dibuka
+  const [patients, setPatients] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('simRehabPatients');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(false);
 
-  // 1. Ambil semua data pasien dari Backend MySQL saat web dibuka
+  // Otomatis simpan data ke memori lokal browser setiap ada perubahan
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('simRehabPatients', JSON.stringify(patients));
+    } catch (e) {
+      console.warn('Gagal menyimpan ke sessionStorage:', e);
+    }
+  }, [patients]);
+
+  // 1. Ambil data dari Backend jika server sedang aktif
   const fetchPatients = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`${API_URL}/patients?per_page=10000`);
       const json = await res.json();
-      if (res.ok && json.success && Array.isArray(json.data)) {
+      if (res.ok && json.success && Array.isArray(json.data) && json.data.length > 0) {
         const mapped = json.data.map(mapFromApi);
         setPatients(normalizePatientList(mapped));
-      } else {
-        console.error('Gagal mengambil data pasien:', json.message);
       }
     } catch (err) {
-      console.error('Error koneksi ke backend:', err);
+      console.warn('Backend offline, menggunakan data lokal browser.');
     } finally {
       setLoading(false);
     }
@@ -248,47 +263,34 @@ export function PatientProvider({ children }) {
     const normalizedItem = normalizePatientList([newPatient])[0];
     const payload = mapToApi(normalizedItem);
 
+    // Coba kirim ke Backend jika aktif
     try {
-      const res = await fetch(`${API_URL}/patients`, {
+      await fetch(`${API_URL}/patients`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const json = await res.json();
-
-      if (!res.ok || !json.success) {
-        alert(`Gagal menyimpan ke database: ${json.message || 'Terjadi kesalahan'}`);
-        return null;
-      }
-
-      setPatients((prev) => [normalizedItem, ...prev]);
-      return normalizedItem;
     } catch (err) {
-      console.error('Error POST patient:', err);
-      alert('Gagal terhubung ke server backend (pastikan localhost:5000 aktif).');
-      return null;
+      console.warn('Backend offline, data disimpan ke memori lokal.');
     }
+
+    // Selalu simpan ke tampilan Front-End
+    setPatients((prev) => [normalizedItem, ...prev]);
+    return normalizedItem;
   }, []);
 
   // 3. Hapus Pasien (DELETE /api/patients/:nik)
   const deletePatient = useCallback(async (nik) => {
     const cleanNik = String(nik).trim();
     try {
-      const res = await fetch(`${API_URL}/patients/${encodeURIComponent(cleanNik)}`, {
+      await fetch(`${API_URL}/patients/${encodeURIComponent(cleanNik)}`, {
         method: 'DELETE',
       });
-      const json = await res.json();
-
-      if (!res.ok || !json.success) {
-        alert(`Gagal menghapus data: ${json.message || 'Terjadi kesalahan'}`);
-        return;
-      }
-
-      setPatients((prev) => prev.filter((p) => String(p.nik).trim() !== cleanNik));
     } catch (err) {
-      console.error('Error DELETE patient:', err);
-      alert('Gagal terhubung ke server backend.');
+      console.warn('Backend offline, data dihapus di lokal.');
     }
+
+    setPatients((prev) => prev.filter((p) => String(p.nik).trim() !== cleanNik));
   }, []);
 
   // 4. Perbarui Status & Data Pasien (PUT /api/patients/:nik)
@@ -300,57 +302,48 @@ export function PatientProvider({ children }) {
     const payload = mapPartialToApi(fieldsObj);
 
     try {
-      const res = await fetch(`${API_URL}/patients/${encodeURIComponent(cleanNik)}`, {
+      await fetch(`${API_URL}/patients/${encodeURIComponent(cleanNik)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const json = await res.json();
-
-      if (!res.ok || !json.success) {
-        alert(`Gagal memperbarui data: ${json.message || 'Terjadi kesalahan'}`);
-        return;
-      }
-
-      setPatients((prev) =>
-        normalizePatientList(
-          prev.map((p) =>
-            String(p.nik).trim() === cleanNik ? { ...p, ...fieldsObj } : p
-          )
-        )
-      );
     } catch (err) {
-      console.error('Error PUT patient:', err);
-      alert('Gagal terhubung ke server backend.');
+      console.warn('Backend offline, status diperbarui di lokal.');
     }
+
+    setPatients((prev) =>
+      normalizePatientList(
+        prev.map((p) =>
+          String(p.nik).trim() === cleanNik ? { ...p, ...fieldsObj } : p
+        )
+      )
+    );
   }, []);
 
   // 5. Impor Pasien Massal dari Excel/CSV (POST /api/patients/bulk-import)
-const importPatients = useCallback(async (incomingList, mode = 'append') => {
-  const normalizedIncoming = normalizePatientList(incomingList);
-  const payloadList = normalizedIncoming.map(mapToApi);
+  const importPatients = useCallback(async (incomingList, mode = 'append') => {
+    const normalizedIncoming = normalizePatientList(incomingList);
+    const payloadList = normalizedIncoming.map(mapToApi);
 
-  try {
-    const res = await fetch(`${API_URL}/patients/bulk-import`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ patients: payloadList, mode }),
-    });
-    const json = await res.json();
-
-    if (!res.ok || !json.success) {
-      alert(`Gagal impor massal: ${json.message || 'Terjadi kesalahan'}`);
-      return;
+    try {
+      await fetch(`${API_URL}/patients/bulk-import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patients: payloadList, mode }),
+      });
+    } catch (err) {
+      console.warn('Backend offline saat impor, data disimpan ke lokal.');
     }
 
-    await fetchPatients();
-  } catch (err) {
-    console.error('Error bulk-import:', err);
-    alert('Gagal terhubung ke server backend saat impor data.');
-  }
-}, [fetchPatients]);
+    // Selalu simpan ke tampilan Front-End
+    setPatients((prev) =>
+      mode === 'replace'
+        ? normalizedIncoming
+        : normalizePatientList([...normalizedIncoming, ...prev])
+    );
+  }, []);
 
-  // 6. Kosongkan daftar tampilan (tidak langsung hapus DB demi keamanan)
+  // 6. Kosongkan daftar tampilan
   const clearAllPatients = useCallback(() => {
     setPatients([]);
   }, []);

@@ -7,7 +7,8 @@ import {
   Clock,
   CheckCircle,
   WarningCircle,
-  FileText
+  FileText,
+  Check
 } from '@phosphor-icons/react';
 
 const INSTANSI_RUJUKAN_LIST = [
@@ -141,24 +142,46 @@ export default function QuickActionModal({ isOpen, patient, onClose, onSave }) {
 
         {/* Banner Identitas Klien */}
         <div className="modal-patient-banner">
-          <div className="patient-banner-avatar" style={{ padding: patient.foto ? 0 : undefined, overflow: 'hidden' }}>
+          <div className="patient-banner-avatar">
             {patient.foto ? (
               <img
                 src={patient.foto}
                 alt={patient.nama}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                className="modal-avatar-img"
               />
             ) : (
-              <User size={22} weight="bold" />
+              <div className="modal-avatar-init">
+                {(patient.nama || 'K').charAt(0).toUpperCase()}
+              </div>
             )}
           </div>
           <div className="patient-banner-text">
-            <strong id="modalPatientName" className="patient-name-title">
-              {patient.nama || 'Klien'}
-            </strong>
-            <span className="patient-banner-meta" id="modalPatientNik">
-              NIK: {patient.nik || '-'} &bull; No Surat: {patient.nomorSurat || '-'} &bull; {patient.pekerjaan || 'Klien'}
-            </span>
+            <div className="patient-banner-top">
+              <strong id="modalPatientName" className="patient-name-title">
+                {patient.nama || 'Klien'}
+              </strong>
+            </div>
+            <div className="patient-banner-meta" id="modalPatientNik">
+              <span className="patient-meta-item">
+                <strong>NIK:</strong> {patient.nik || '-'}
+              </span>
+              <span className="patient-meta-dot">&bull;</span>
+              <span className="patient-meta-item">
+                <strong>No. Surat:</strong> {patient.nomorSurat || '-'}
+              </span>
+              <span className="patient-meta-dot">&bull;</span>
+              <span className="patient-meta-item">
+                {patient.pekerjaan || 'Klien'}
+              </span>
+              {patient.kecamatan && (
+                <>
+                  <span className="patient-meta-dot">&bull;</span>
+                  <span className="patient-meta-item">
+                    Kec. {patient.kecamatan}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -175,8 +198,14 @@ export default function QuickActionModal({ isOpen, patient, onClose, onSave }) {
                 className={`status-chip chip-ongoing ${selectedStatus === 'ON GOING' ? 'active' : ''}`}
                 onClick={() => setSelectedStatus('ON GOING')}
               >
-                <Clock size={16} weight="bold" />
-                <span>ON GOING</span>
+                <div className="status-chip-icon">
+                  <Clock size={18} weight="bold" />
+                </div>
+                <div className="status-chip-content">
+                  <span className="status-chip-title">ON GOING</span>
+                  <span className="status-chip-sub">Dalam Program Rawatan</span>
+                </div>
+                <Check size={16} weight="bold" className="status-chip-check" />
               </button>
 
               <button
@@ -184,8 +213,14 @@ export default function QuickActionModal({ isOpen, patient, onClose, onSave }) {
                 className={`status-chip chip-selesai ${selectedStatus === 'SELESAI' ? 'active' : ''}`}
                 onClick={() => setSelectedStatus('SELESAI')}
               >
-                <CheckCircle size={16} weight="bold" />
-                <span>SELESAI / PULIH</span>
+                <div className="status-chip-icon">
+                  <CheckCircle size={18} weight="bold" />
+                </div>
+                <div className="status-chip-content">
+                  <span className="status-chip-title">SELESAI / PULIH</span>
+                  <span className="status-chip-sub">Lulus Program Rawatan</span>
+                </div>
+                <Check size={16} weight="bold" className="status-chip-check" />
               </button>
 
               <button
@@ -193,8 +228,14 @@ export default function QuickActionModal({ isOpen, patient, onClose, onSave }) {
                 className={`status-chip chip-dropout ${selectedStatus === 'DROP OUT' ? 'active' : ''}`}
                 onClick={() => setSelectedStatus('DROP OUT')}
               >
-                <WarningCircle size={16} weight="bold" />
-                <span>DROP OUT (DO)</span>
+                <div className="status-chip-icon">
+                  <WarningCircle size={18} weight="bold" />
+                </div>
+                <div className="status-chip-content">
+                  <span className="status-chip-title">DROP OUT (DO)</span>
+                  <span className="status-chip-sub">Putus Kontak / Mangkir</span>
+                </div>
+                <Check size={16} weight="bold" className="status-chip-check" />
               </button>
             </div>
           </div>

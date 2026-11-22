@@ -18,6 +18,7 @@ import {
 } from '@phosphor-icons/react';
 import Sidebar from '../components/Sidebar';
 import QuickActionModal from '../components/QuickActionModal';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import Toast from '../components/Toast';
 import Pagination from '../components/Pagination';
 import { usePatients } from '../context/PatientContext';
@@ -58,6 +59,8 @@ export default function MonitoringPasienPage() {
 
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [patientToDelete, setPatientToDelete] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [toastShow, setToastShow] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
 
@@ -210,14 +213,18 @@ export default function MonitoringPasienPage() {
   };
 
   const handleDeleteClick = (p) => {
-    const confirm = window.confirm(
-      `Apakah Anda yakin ingin menghapus data rekam medis pasien:\n\nNama: ${p.nama}\nNIK: ${p.nik}\n\nTindakan ini tidak dapat dibatalkan.`
-    );
-    if (confirm) {
-      deletePatient(p.nik);
-      setToastMsg(`Data klien <strong>${p.nama}</strong> telah dihapus.`);
+    setPatientToDelete(p);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (patientToDelete) {
+      deletePatient(patientToDelete.nik);
+      setIsDeleteModalOpen(false);
+      setToastMsg(`Data klien <strong>${patientToDelete.nama}</strong> telah dihapus.`);
       setToastShow(true);
       setTimeout(() => setToastShow(false), 3000);
+      setPatientToDelete(null);
     }
   };
 
@@ -580,6 +587,17 @@ export default function MonitoringPasienPage() {
           patient={selectedPatient}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveModal}
+        />
+
+        {/* Modal Konfirmasi Hapus Data Pasien */}
+        <ConfirmDeleteModal
+          isOpen={isDeleteModalOpen}
+          patient={patientToDelete}
+          onCancel={() => {
+            setIsDeleteModalOpen(false);
+            setPatientToDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
         />
 
         {/* Toast Notifikasi */}

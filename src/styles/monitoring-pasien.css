@@ -312,3 +312,406 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ==============================================================================
+ * QUICK ACTION MODAL STYLES (ANTI-SLOP & ACCESSIBLE)
+ * ============================================================================== */
+.modal-patient-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background-color: var(--bg-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.patient-banner-avatar {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #eff6ff;
+  color: var(--navy-800);
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+}
+
+.modal-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-avatar-init {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--navy-800);
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+}
+
+.patient-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.patient-banner-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.patient-name-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--navy-950);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.patient-banner-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.patient-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.patient-meta-dot {
+  color: var(--text-muted);
+}
+
+/* Status Cards Picker */
+.status-cards-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.status-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background-color: var(--bg-surface);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  text-align: left;
+  position: relative;
+  box-shadow: var(--shadow-xs);
+}
+
+.status-chip:hover {
+  background-color: var(--bg-subtle);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.status-chip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-canvas);
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: all 0.15s ease-in-out;
+}
+
+.status-chip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.status-chip-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+.status-chip-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.25;
+}
+
+.status-chip-check {
+  margin-left: auto;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: all 0.15s ease-in-out;
+}
+
+/* Active States for Status Chips */
+.status-chip.chip-ongoing.active {
+  background-color: #fffbeb;
+  border-color: #d97706;
+  box-shadow: 0 0 0 1px #d97706;
+}
+.status-chip.chip-ongoing.active .status-chip-icon {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+.status-chip.chip-ongoing.active .status-chip-title {
+  color: #92400e;
+}
+.status-chip.chip-ongoing.active .status-chip-check {
+  opacity: 1;
+  transform: scale(1);
+  color: #d97706;
+}
+
+.status-chip.chip-selesai.active {
+  background-color: #f0fdf4;
+  border-color: #16a34a;
+  box-shadow: 0 0 0 1px #16a34a;
+}
+.status-chip.chip-selesai.active .status-chip-icon {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+.status-chip.chip-selesai.active .status-chip-title {
+  color: #166534;
+}
+.status-chip.chip-selesai.active .status-chip-check {
+  opacity: 1;
+  transform: scale(1);
+  color: #16a34a;
+}
+
+.status-chip.chip-dropout.active {
+  background-color: #fef2f2;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px #dc2626;
+}
+.status-chip.chip-dropout.active .status-chip-icon {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+.status-chip.chip-dropout.active .status-chip-title {
+  color: #991b1b;
+}
+.status-chip.chip-dropout.active .status-chip-check {
+  opacity: 1;
+  transform: scale(1);
+  color: #dc2626;
+}
+
+/* ===== CONFIRM DELETE MODAL (CUSTOM PROPER & ANTI-SLOP) ===== */
+.modal-delete-card {
+  max-width: 480px;
+  width: 90%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: #ffffff;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-delete-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background-color: #fef2f2;
+  border-bottom: 1px solid #fee2e2;
+}
+
+.modal-delete-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #991b1b;
+}
+
+.modal-delete-badge-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-radius: var(--radius-sm);
+}
+
+.modal-delete-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-delete-prompt {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.modal-delete-patient-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.delete-patient-avatar {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-surface);
+  overflow: hidden;
+}
+
+.delete-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.delete-avatar-init {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--navy-800);
+}
+
+.delete-patient-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.delete-patient-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy-950);
+}
+
+.delete-patient-meta,
+.delete-patient-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.delete-patient-meta .font-mono {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-delete-alert-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: var(--radius-sm);
+  color: #9a3412;
+}
+
+.delete-alert-icon {
+  flex-shrink: 0;
+  color: #ea580c;
+  margin-top: 1px;
+}
+
+.delete-alert-text {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.delete-alert-text strong {
+  font-size: 0.82rem;
+  color: #7c2d12;
+}
+
+.modal-delete-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  background-color: var(--bg-subtle);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.btn-danger-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #dc2626;
+  color: #ffffff;
+  border: 1px solid #b91c1c;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-danger-action:hover {
+  background-color: #b91c1c;
+  border-color: #991b1b;
+}
+
+.btn-danger-action:active {
+  background-color: #991b1b;
+}
