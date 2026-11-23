@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   User,
   LockKey,
-  ShieldCheck,
   Eye,
   EyeSlash,
   SignIn,
@@ -19,26 +18,17 @@ export default function LoginPage() {
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('super_user');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     document.title = 'SIM-REHAB | Login Pegawai - BNNK Buleleng';
-    try {
-      const saved = localStorage.getItem('simRehabUser');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.username) setUsername(parsed.username);
-        if (parsed.role) setRole(parsed.role);
-      }
-    } catch (e) {}
-
     if (user) {
       navigate('/dashboard');
     }
   }, [user, navigate]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const trimmedUsername = username.trim();
@@ -47,7 +37,15 @@ export default function LoginPage() {
       return;
     }
 
-    login(trimmedUsername, password, role);
+    setIsSubmitting(true);
+    const result = await login(trimmedUsername, password);
+    setIsSubmitting(false);
+
+    if (!result.success) {
+      alert(result.message);
+      return;
+    }
+
     navigate('/dashboard');
   };
 
@@ -111,7 +109,7 @@ export default function LoginPage() {
                   id="username"
                   name="username"
                   className="form-input with-prefix"
-                  placeholder="198705142012011001 / staf_rehab"
+                  placeholder="kasi_rehab / staf_rehab"
                   autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -143,7 +141,7 @@ export default function LoginPage() {
                   type="button"
                   className="password-toggle-btn"
                   id="togglePassword"
-                  aria-label={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
+                  aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Lihat kata sandi'}
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -155,31 +153,13 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="role" className="form-label">
-                Kewenangan Akses (Role)
-              </label>
-              <div className="input-with-icon">
-                <span className="input-icon">
-                  <ShieldCheck size={18} weight="bold" />
-                </span>
-                <select
-                  id="role"
-                  name="role"
-                  className="form-select with-prefix"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  required
-                >
-                  <option value="petugas_rehab">Petugas Rehabilitasi</option>
-                  <option value="super_user">Super User (Kasi Rehab)</option>
-                </select>
-              </div>
-            </div>
-
-            <button type="submit" className="btn btn-primary btn-block btn-lg">
+            <button
+              type="submit"
+              className="btn btn-primary btn-block btn-lg"
+              disabled={isSubmitting}
+            >
               <SignIn size={18} weight="bold" />
-              <span>Masuk ke Sistem</span>
+              <span>{isSubmitting ? 'Memverifikasi...' : 'Masuk ke Sistem'}</span>
             </button>
           </form>
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useSearchParams } from 'react-router-dom';
 import {
   MagnifyingGlass,
@@ -35,6 +36,8 @@ import '../styles/design-system.css';
 import '../styles/monitoring-pasien.css';
 
 export default function MonitoringPasienPage() {
+  const { user } = useAuth();
+  const isSuperUser = user?.role === 'super_user';
   const { patients, updatePatientStatus, deletePatient } = usePatients();
   const [searchParams, setSearchParams] = useSearchParams();
   const tableContainerRef = useRef(null);
@@ -213,19 +216,21 @@ export default function MonitoringPasienPage() {
   };
 
   const handleDeleteClick = (p) => {
+    if (!isSuperUser) return;
     setPatientToDelete(p);
     setIsDeleteModalOpen(true);
   };
 
-  const handleConfirmDelete = () => {
-    if (patientToDelete) {
-      deletePatient(patientToDelete.nik);
-      setIsDeleteModalOpen(false);
-      setToastMsg(`Data klien <strong>${patientToDelete.nama}</strong> telah dihapus.`);
-      setToastShow(true);
-      setTimeout(() => setToastShow(false), 3000);
-      setPatientToDelete(null);
-    }
+  const handleConfirmDelete = async () => {
+    if (!isSuperUser || !patientToDelete) return;
+    const target = patientToDelete;
+    setIsDeleteModalOpen(false);
+    setPatientToDelete(null);
+
+    await deletePatient(target.nik);
+    setToastMsg(`Permintaan hapus data <strong>${target.nama}</strong> selesai diproses.`);
+    setToastShow(true);
+    setTimeout(() => setToastShow(false), 3000);
   };
 
   const renderStatusBadge = (p) => {
@@ -543,14 +548,17 @@ export default function MonitoringPasienPage() {
                                 <PencilSimple size={15} weight="bold" />
                                 <span>Ubah</span>
                               </button>
-                              <button
-                                type="button"
-                                className="btn-table-action btn-delete"
-                                title="Hapus Rekam Medis"
-                                onClick={() => handleDeleteClick(p)}
-                              >
-                                <Trash size={15} weight="bold" />
-                              </button>
+
+                              {isSuperUser && (
+                                <button
+                                  type="button"
+                                  className="btn-table-action btn-delete"
+                                  title="Hapus Rekam Medis"
+                                  onClick={() => handleDeleteClick(p)}
+                                >
+                                  <Trash size={15} weight="bold" />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -590,15 +598,18 @@ export default function MonitoringPasienPage() {
         />
 
         {/* Modal Konfirmasi Hapus Data Pasien */}
-        <ConfirmDeleteModal
-          isOpen={isDeleteModalOpen}
-          patient={patientToDelete}
-          onCancel={() => {
-            setIsDeleteModalOpen(false);
-            setPatientToDelete(null);
-          }}
-          onConfirm={handleConfirmDelete}
-        />
+        {/* Modal Konfirmasi Hapus Data Pasien (Khusus Super User) */}
+          {isSuperUser && (
+            <ConfirmDeleteModal
+              isOpen={isDeleteModalOpen}
+              patient={patientToDelete}
+              onCancel={() => {
+                setIsDeleteModalOpen(false);
+                setPatientToDelete(null);
+              }}
+              onConfirm={handleConfirmDelete}
+            />
+          )}
 
         {/* Toast Notifikasi */}
         <Toast show={toastShow} message={toastMsg} />
