@@ -58,10 +58,10 @@ export default function App() {
 
   return (
     <Routes>
-      {/* Rute Awal ('/'): Jika sudah login ke /dashboard, jika belum ke /login */}
+      {/* Rute Awal ('/'): Selalu arahkan pengguna ke halaman /login terlebih dahulu */}
       <Route
         path="/"
-        element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
+        element={<Navigate to="/login" replace />}
       />
 
       {/* Rute Publik: Halaman Login (bisa diakses tanpa login) */}

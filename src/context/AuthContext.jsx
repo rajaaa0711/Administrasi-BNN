@@ -13,7 +13,10 @@ export const roleLabels = {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
-      const savedUser = localStorage.getItem('simRehabUser');
+      // Bersihkan cache lama di localStorage agar tidak langsung otomatis masuk
+      localStorage.removeItem('simRehabUser');
+      localStorage.removeItem('simRehabToken');
+      const savedUser = sessionStorage.getItem('simRehabUser');
       return savedUser ? JSON.parse(savedUser) : null;
     } catch (e) {
       return null;
@@ -34,13 +37,42 @@ export function AuthProvider({ children }) {
       }
 
       const { token, user: userData } = json.data;
-      localStorage.setItem('simRehabToken', token);
-      localStorage.setItem('simRehabUser', JSON.stringify(userData));
+      sessionStorage.setItem('simRehabToken', token);
+      sessionStorage.setItem('simRehabUser', JSON.stringify(userData));
       setUser(userData);
 
       return { success: true, message: json.message };
     } catch (err) {
       console.error('Error login:', err);
+
+      // Fallback Demo Login jika server backend belum dihidupkan
+      const cleanU = username.trim().toLowerCase();
+      if ((cleanU === 'kasi_rehab' && password === 'admin123') || (cleanU === 'super_user' && password === 'admin123')) {
+        const demoUser = {
+          id: 1,
+          username: 'kasi_rehab',
+          nama: 'Kasi Rehabilitasi BNNK (Demo)',
+          role: 'super_user'
+        };
+        sessionStorage.setItem('simRehabToken', 'demo_token_super_user');
+        sessionStorage.setItem('simRehabUser', JSON.stringify(demoUser));
+        setUser(demoUser);
+        return { success: true, message: 'Login berhasil (Mode Demo - Super User)!' };
+      }
+
+      if ((cleanU === 'staf_rehab' && password === 'staf123') || (cleanU === 'admin' && password === 'admin')) {
+        const demoUser = {
+          id: 2,
+          username: cleanU,
+          nama: 'Petugas Rehabilitasi (Demo)',
+          role: 'petugas_rehab'
+        };
+        sessionStorage.setItem('simRehabToken', 'demo_token_petugas');
+        sessionStorage.setItem('simRehabUser', JSON.stringify(demoUser));
+        setUser(demoUser);
+        return { success: true, message: 'Login berhasil (Mode Demo - Petugas Rehab)!' };
+      }
+
       return {
         success: false,
         message: 'Gagal terhubung ke server backend (pastikan localhost:5000 aktif).',
@@ -51,6 +83,7 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem('simRehabToken');
     localStorage.removeItem('simRehabUser');
+    sessionStorage.removeItem('simRehabToken');
     sessionStorage.removeItem('simRehabUser');
     setUser(null);
   };

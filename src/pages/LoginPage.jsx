@@ -23,10 +23,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     document.title = 'SIM-REHAB | Login Pegawai - BNNK Buleleng';
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
