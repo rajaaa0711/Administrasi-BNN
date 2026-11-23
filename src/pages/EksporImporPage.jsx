@@ -1412,13 +1412,12 @@ export default function EksporImporPage() {
                                 </td>
                                 <td style={{ textAlign: 'center' }}>
                                   <span
-                                    className={`badge ${
-                                      item.statusProgres === 'SELESAI'
+                                    className={`badge ${item.statusProgres === 'SELESAI'
                                         ? 'badge-completed'
                                         : item.statusProgres === 'DROP OUT'
-                                        ? 'badge-dropout'
-                                        : 'badge-ongoing'
-                                    }`}
+                                          ? 'badge-dropout'
+                                          : 'badge-ongoing'
+                                      }`}
                                   >
                                     {item.statusProgres}
                                   </span>
@@ -1536,8 +1535,8 @@ export default function EksporImporPage() {
                 {selectKecamatan === 'semua'
                   ? 'Seluruh Kecamatan'
                   : selectDesa === 'semua'
-                  ? `Kecamatan ${selectKecamatan.toUpperCase()}`
-                  : `Kec. ${selectKecamatan.toUpperCase()} - Desa ${selectDesa.toUpperCase()}`}
+                    ? `Kecamatan ${selectKecamatan.toUpperCase()}`
+                    : `Kec. ${selectKecamatan.toUpperCase()} - Desa ${selectDesa.toUpperCase()}`}
               </span>
             </div>
             <div>
@@ -1557,9 +1556,9 @@ export default function EksporImporPage() {
                 <strong>Kelompok Usia:</strong>{' '}
                 <span>
                   {selectUmur === '13-19' ? '13 - 19 Tahun (Remaja)' :
-                   selectUmur === '20-25' ? '20 - 25 Tahun' :
-                   selectUmur === '26-35' ? '26 - 35 Tahun' :
-                   selectUmur === '36-45' ? '36 - 45 Tahun' : '46 Tahun ke atas'}
+                    selectUmur === '20-25' ? '20 - 25 Tahun' :
+                      selectUmur === '26-35' ? '26 - 35 Tahun' :
+                        selectUmur === '36-45' ? '36 - 45 Tahun' : '46 Tahun ke atas'}
                 </span>
               </div>
             )}
@@ -1627,7 +1626,7 @@ export default function EksporImporPage() {
             <p className="sig-job">Kepala BNN Kabupaten Buleleng</p>
             <div className="sig-space"></div>
             <p className="sig-name">
-              <strong>AKBP Gede Astawa, S.H., M.H.</strong>
+              <strong>Komang Yuda Murdianto, S.H., M.H.</strong>
             </p>
             <p className="sig-nip">NIP. 19741120 199903 1 001</p>
           </div>
