@@ -1413,10 +1413,10 @@ export default function EksporImporPage() {
                                 <td style={{ textAlign: 'center' }}>
                                   <span
                                     className={`badge ${item.statusProgres === 'SELESAI'
-                                        ? 'badge-completed'
-                                        : item.statusProgres === 'DROP OUT'
-                                          ? 'badge-dropout'
-                                          : 'badge-ongoing'
+                                      ? 'badge-completed'
+                                      : item.statusProgres === 'DROP OUT'
+                                        ? 'badge-dropout'
+                                        : 'badge-ongoing'
                                       }`}
                                   >
                                     {item.statusProgres}
@@ -1628,7 +1628,7 @@ export default function EksporImporPage() {
             <p className="sig-name">
               <strong>Komang Yuda Murdianto, S.H., M.H.</strong>
             </p>
-            <p className="sig-nip">NIP. 19741120 199903 1 001</p>
+            <p className="sig-nip">NIP. 198505192011011008</p>
           </div>
         </div>
       </div>
