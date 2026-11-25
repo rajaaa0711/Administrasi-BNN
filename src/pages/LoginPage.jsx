@@ -7,8 +7,7 @@ import {
   EyeSlash,
   SignIn,
   Buildings,
-  WarningCircle,
-  ShieldCheck
+  WarningCircle
 } from '@phosphor-icons/react';
 import { useAuth } from '../context/AuthContext';
 import '../styles/design-system.css';
@@ -48,12 +47,6 @@ export default function LoginPage() {
     }
 
     navigate('/dashboard');
-  };
-
-  const handleQuickFill = (u, p) => {
-    setUsername(u);
-    setPassword(p);
-    setErrorMessage('');
   };
 
   return (
@@ -182,31 +175,6 @@ export default function LoginPage() {
               <span>{isSubmitting ? 'Memverifikasi...' : 'Masuk ke Sistem'}</span>
             </button>
           </form>
-
-          {/* Tombol Akses Cepat */}
-          <div className="quick-login-section">
-            <span className="quick-login-label">Pilihan Cepat Masuk:</span>
-            <div className="quick-login-chips">
-              <button
-                type="button"
-                className="quick-chip chip-super"
-                onClick={() => handleQuickFill('kasi_rehab', 'admin123')}
-                title="Isi Akun Super User (Akses Penuh + Tombol Hapus)"
-              >
-                <ShieldCheck size={14} weight="bold" />
-                <span>Super User (Kasi)</span>
-              </button>
-              <button
-                type="button"
-                className="quick-chip chip-staf"
-                onClick={() => handleQuickFill('staf_rehab', 'staf123')}
-                title="Isi Akun Petugas Rehabilitasi"
-              >
-                <User size={14} weight="bold" />
-                <span>Petugas Rehab</span>
-              </button>
-            </div>
-          </div>
 
           <div className="login-security-info">
             <span>Sistem internal terenkripsi BNN RI</span>
