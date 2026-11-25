@@ -6,7 +6,9 @@ import {
   Eye,
   EyeSlash,
   SignIn,
-  Buildings
+  Buildings,
+  WarningCircle,
+  ShieldCheck
 } from '@phosphor-icons/react';
 import { useAuth } from '../context/AuthContext';
 import '../styles/design-system.css';
@@ -20,6 +22,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     document.title = 'SIM-REHAB | Login Pegawai - BNNK Buleleng';
@@ -27,10 +30,11 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage('');
 
     const trimmedUsername = username.trim();
     if (!trimmedUsername || !password) {
-      alert('Mohon lengkapi NIP/Username dan Kata Sandi.');
+      setErrorMessage('Mohon lengkapi NIP/Username dan Kata Sandi.');
       return;
     }
 
@@ -39,11 +43,17 @@ export default function LoginPage() {
     setIsSubmitting(false);
 
     if (!result.success) {
-      alert(result.message);
+      setErrorMessage(result.message);
       return;
     }
 
     navigate('/dashboard');
+  };
+
+  const handleQuickFill = (u, p) => {
+    setUsername(u);
+    setPassword(p);
+    setErrorMessage('');
   };
 
   return (
@@ -92,6 +102,13 @@ export default function LoginPage() {
             </p>
           </div>
 
+          {errorMessage && (
+            <div className="login-error-alert" role="alert">
+              <WarningCircle size={18} weight="fill" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           <form className="login-form" id="loginForm" onSubmit={handleSubmit} noValidate>
             <div className="form-group">
               <label htmlFor="username" className="form-label">
@@ -109,7 +126,10 @@ export default function LoginPage() {
                   placeholder="kasi_rehab / staf_rehab"
                   autoComplete="username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    if (errorMessage) setErrorMessage('');
+                  }}
                   required
                 />
               </div>
@@ -131,7 +151,10 @@ export default function LoginPage() {
                   placeholder="••••••••••••"
                   autoComplete="current-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errorMessage) setErrorMessage('');
+                  }}
                   required
                 />
                 <button
@@ -159,6 +182,31 @@ export default function LoginPage() {
               <span>{isSubmitting ? 'Memverifikasi...' : 'Masuk ke Sistem'}</span>
             </button>
           </form>
+
+          {/* Tombol Akses Cepat */}
+          <div className="quick-login-section">
+            <span className="quick-login-label">Pilihan Cepat Masuk:</span>
+            <div className="quick-login-chips">
+              <button
+                type="button"
+                className="quick-chip chip-super"
+                onClick={() => handleQuickFill('kasi_rehab', 'admin123')}
+                title="Isi Akun Super User (Akses Penuh + Tombol Hapus)"
+              >
+                <ShieldCheck size={14} weight="bold" />
+                <span>Super User (Kasi)</span>
+              </button>
+              <button
+                type="button"
+                className="quick-chip chip-staf"
+                onClick={() => handleQuickFill('staf_rehab', 'staf123')}
+                title="Isi Akun Petugas Rehabilitasi"
+              >
+                <User size={14} weight="bold" />
+                <span>Petugas Rehab</span>
+              </button>
+            </div>
+          </div>
 
           <div className="login-security-info">
             <span>Sistem internal terenkripsi BNN RI</span>

@@ -1,0 +1,310 @@
+/* ==============================================================================
+ * SIM-REHAB BNNK BULELENG - Pengaturan Akun Styles
+ * Clean, Full-Width, Public-Sector Aesthetic (Anti-Slop)
+ * ============================================================================== */
+
+.settings-page-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+/* ===== TOP BANNER PROFIL PEGAWAI (FULL WIDTH) ===== */
+.settings-banner-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-xs);
+  gap: 20px;
+}
+
+.settings-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.profile-avatar-circle-lg {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  border-radius: 50%;
+  background-color: var(--navy-900);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 800;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid #ffffff;
+  outline: 2px solid var(--navy-700);
+}
+
+.settings-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-banner-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.settings-banner-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--navy-950);
+}
+
+.settings-banner-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.settings-banner-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.settings-banner-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ===== GRID 2 KOLOM (PROFIL & KEAMANAN) ===== */
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 20px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .settings-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.settings-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-subtle);
+}
+
+.settings-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-card-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background-color: #eff6ff;
+  color: var(--blue-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.settings-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.settings-card-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.settings-card-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+/* Tabel Detail Spesifikasi Akun */
+.settings-spec-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.settings-spec-table tr {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.settings-spec-table tr:last-child {
+  border-bottom: none;
+}
+
+.settings-spec-table td {
+  padding: 11px 8px;
+  font-size: 0.83rem;
+  vertical-align: middle;
+}
+
+.spec-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  width: 38%;
+}
+
+.spec-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.badge-perm-yes {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background-color: #dcfce7;
+  color: #15803d;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-perm-no {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background-color: #f1f5f9;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-active-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #16a34a;
+  box-shadow: 0 0 0 2px #dcfce7;
+}
+
+/* Password Form */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings-form .form-group {
+  margin-bottom: 0;
+}
+
+.settings-btn-save {
+  margin-top: 6px;
+  align-self: flex-start;
+}
+
+/* ===== TABEL DAFTAR AKUN SISTEM (FULL WIDTH) ===== */
+.settings-users-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.settings-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.settings-users-table th {
+  background-color: var(--bg-subtle);
+  padding: 12px 16px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.settings-users-table td {
+  padding: 12px 16px;
+  font-size: 0.83rem;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.settings-users-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+.user-row-active td {
+  background-color: #eff6ff !important;
+}
+
+.user-cell-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-mini-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--navy-800);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}

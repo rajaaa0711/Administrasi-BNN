@@ -21,11 +21,6 @@ export default function Sidebar() {
     navigate('/login');
   };
 
-  const handleSettingsClick = (e) => {
-    e.preventDefault();
-    alert('Fitur Pengaturan Akun Pegawai SIM-REHAB dapat diakses oleh Administrator Sistem.');
-  };
-
   const displayRole = user?.role
     ? roleLabels[user.role] || 'Super User (Kasi Rehab)'
     : 'Super User (Kasi Rehab)';
@@ -91,17 +86,16 @@ export default function Sidebar() {
           Ekspor / Impor Data
         </NavLink>
 
-        <a
-          href="#pengaturan"
-          onClick={handleSettingsClick}
-          className="nav-item"
+        <NavLink
+          to="/pengaturan-akun"
+          className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
           id="navSettings"
         >
           <span className="nav-icon">
             <Gear size={18} weight="bold" />
           </span>
           Pengaturan Akun
-        </a>
+        </NavLink>
       </nav>
 
       {/* Panel Pengguna */}

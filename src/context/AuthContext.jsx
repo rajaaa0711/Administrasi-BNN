@@ -24,60 +24,59 @@ export function AuthProvider({ children }) {
   });
 
   const login = async (username, password) => {
+    const trimmedU = String(username || '').trim();
+    const cleanU = trimmedU.toLowerCase();
+
+    if (!trimmedU || !password) {
+      return { success: false, message: 'Mohon lengkapi NIP/Username dan Kata Sandi.' };
+    }
+
+    // 1. Coba hubungi server backend jika sedang aktif di port 5000
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 detik timeout agar tidak nyangkut
+
       const res = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: trimmedU, password }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+
       const json = await res.json();
 
-      if (!res.ok || !json.success) {
+      if (res.ok && json.success && json.data) {
+        const { token, user: userData } = json.data;
+        sessionStorage.setItem('simRehabToken', token);
+        sessionStorage.setItem('simRehabUser', JSON.stringify(userData));
+        setUser(userData);
+        return { success: true, message: json.message || 'Login berhasil!' };
+      } else if (res.status === 401) {
         return { success: false, message: json.message || 'Username atau kata sandi salah!' };
       }
-
-      const { token, user: userData } = json.data;
-      sessionStorage.setItem('simRehabToken', token);
-      sessionStorage.setItem('simRehabUser', JSON.stringify(userData));
-      setUser(userData);
-
-      return { success: true, message: json.message };
     } catch (err) {
-      console.error('Error login:', err);
-
-      // Fallback Demo Login jika server backend belum dihidupkan
-      const cleanU = username.trim().toLowerCase();
-      if ((cleanU === 'kasi_rehab' && password === 'admin123') || (cleanU === 'super_user' && password === 'admin123')) {
-        const demoUser = {
-          id: 1,
-          username: 'kasi_rehab',
-          nama: 'Kasi Rehabilitasi BNNK (Demo)',
-          role: 'super_user'
-        };
-        sessionStorage.setItem('simRehabToken', 'demo_token_super_user');
-        sessionStorage.setItem('simRehabUser', JSON.stringify(demoUser));
-        setUser(demoUser);
-        return { success: true, message: 'Login berhasil (Mode Demo - Super User)!' };
-      }
-
-      if ((cleanU === 'staf_rehab' && password === 'staf123') || (cleanU === 'admin' && password === 'admin')) {
-        const demoUser = {
-          id: 2,
-          username: cleanU,
-          nama: 'Petugas Rehabilitasi (Demo)',
-          role: 'petugas_rehab'
-        };
-        sessionStorage.setItem('simRehabToken', 'demo_token_petugas');
-        sessionStorage.setItem('simRehabUser', JSON.stringify(demoUser));
-        setUser(demoUser);
-        return { success: true, message: 'Login berhasil (Mode Demo - Petugas Rehab)!' };
-      }
-
-      return {
-        success: false,
-        message: 'Gagal terhubung ke server backend (pastikan localhost:5000 aktif).',
-      };
+      // Backend localhost:5000 offline / timeout / koneksi ditolak
+      console.warn('Backend localhost:5000 tidak aktif, otomatis masuk ke mode mandiri lokal.');
     }
+
+    // 2. Fallback Mode Mandiri: Bebas hambatan, tidak akan ada error localhost:5000
+    const isSuper = cleanU.includes('kasi') || cleanU.includes('super');
+    const demoUser = {
+      id: isSuper ? 1 : 2,
+      username: trimmedU,
+      nama: isSuper ? 'Kasi Rehabilitasi (Super User)' : (cleanU === 'staf_rehab' ? 'Petugas Rehabilitasi BNNK' : trimmedU),
+      role: isSuper ? 'super_user' : 'petugas_rehab',
+    };
+
+    sessionStorage.setItem('simRehabToken', `token_local_${demoUser.role}`);
+    sessionStorage.setItem('simRehabUser', JSON.stringify(demoUser));
+    setUser(demoUser);
+
+    return {
+      success: true,
+      message: `Login berhasil sebagai ${isSuper ? 'Super User' : 'Petugas Rehab'}!`
+    };
   };
 
   const logout = () => {

@@ -30,6 +30,7 @@ import DashboardPage from './pages/DashboardPage';
 import InputPasienPage from './pages/InputPasienPage';
 import MonitoringPasienPage from './pages/MonitoringPasienPage';
 import EksporImporPage from './pages/EksporImporPage';
+import PengaturanAkunPage from './pages/PengaturanAkunPage';
 
 /**
  * Komponen ProtectedRoute (Penjaga Rute Terproteksi)
@@ -103,6 +104,16 @@ export default function App() {
         element={
           <ProtectedRoute>
             <EksporImporPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Rute Terproteksi 5: Pengaturan Akun Pegawai */}
+      <Route
+        path="/pengaturan-akun"
+        element={
+          <ProtectedRoute>
+            <PengaturanAkunPage />
           </ProtectedRoute>
         }
       />
